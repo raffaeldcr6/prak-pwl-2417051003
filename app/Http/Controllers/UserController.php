@@ -41,12 +41,54 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
-        $this->userModel->create([
+        $request->validate([
+            'nama' => 'required|string|max:255',
+            'nim' => 'required|string|max:20|unique:user,nim',
+            'kelas_id' => 'required|exists:kelas,id',
+        ]);
+
+        UserModel::create([
             'nama'     => $request->input('nama'),
-            'nim'      => $request->input('npm'),
+            'nim'      => $request->input('nim'),
             'kelas_id' => $request->input('kelas_id'),
         ]);
 
-        return redirect()->to('/user');
+        return redirect()->to('/user')->with('success', 'Data user berhasil ditambahkan!');
+    }
+
+    // --- TAMBAHKAN METHOD EDIT, UPDATE, DAN DESTROY DI BAWAH INI ---
+
+    public function edit($id)
+    {
+        $user = UserModel::findOrFail($id);
+        $kelas = $this->kelasModel->getKelas();
+
+        $data = [
+            'title' => 'Edit User',
+            'user' => $user,
+            'kelas' => $kelas,
+        ];
+
+        return view('edit_user', $data);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $user = UserModel::findOrFail($id);
+        $user->update([
+            'nama'     => $request->input('nama'),
+            'nim'      => $request->input('nim'),
+            'kelas_id' => $request->input('kelas_id'),
+        ]);
+
+        return redirect()->to('/user')->with('success', 'Data user berhasil diperbarui!');
+    }
+
+    public function destroy($id)
+    {
+        $user = UserModel::findOrFail($id);
+        $user->delete();
+
+        return redirect()->to('/user')->with('success', 'Data user berhasil dihapus!');
     }
 }
